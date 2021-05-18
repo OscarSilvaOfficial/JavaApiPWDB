@@ -1,16 +1,22 @@
 package br.com.bossabox.toolmanager.controller;
 
-import org.springframework.stereotype.Controller;
+import br.com.bossabox.toolmanager.model.Tools;
+import br.com.bossabox.toolmanager.repository.ToolsRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
+import java.util.List;
+
+@RestController
 public class ToolManagerController {
 
-    @RequestMapping("/")
-    @ResponseBody
-    public String select() {
-        return "ok";
+    @Autowired
+    private ToolsRepository toolsRepository;
+
+    @RequestMapping("/tools")
+    public List<Tools> getTools() {
+        return toolsRepository.findAll();
     }
 
 }
