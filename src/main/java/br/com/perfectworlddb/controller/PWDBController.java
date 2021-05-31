@@ -1,66 +1,64 @@
 package br.com.perfectworlddb.controller;
 
-import br.com.perfectworlddb.DTO.ItemsDTO;
-import br.com.perfectworlddb.DTO.AtualizacaoItemsDTO;
-import br.com.perfectworlddb.model.Items;
-import br.com.perfectworlddb.model.Types;
-import br.com.perfectworlddb.repository.ItemsRepository;
+import br.com.perfectworlddb.model.User;
+import br.com.perfectworlddb.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 @RestController
 public class PWDBController {
 
     @Autowired
-    private ItemsRepository itemsRepository;
+    private UserRepository userRepository;
 
-    @GetMapping("/items")
-    public List<Items> getItems() {
-        return itemsRepository.findAll();
+    @GetMapping("/user/{cpf}")
+    public Optional<User> getCpf(@PathVariable String cpf) {
+        return userRepository.findByCpf(cpf);
     }
 
     @Transactional
-    @PostMapping("/items")
-    public void createItems(@RequestBody ItemsDTO request) {
-        List<String> newItemsDTO = request.getTypes();
-        List<Types> types = new ArrayList<Types>();
+    @PostMapping("/user")
+    public ResponseEntity<Object> createItems(@RequestBody User request) {
 
-        for(String itemDTO : newItemsDTO) {
-            types.add(new Types(itemDTO));
-        }
+        Optional<User> user = userRepository.findByCpf(request.getCpf());
 
-        Items items = request.toModel(types);
-        itemsRepository.save(items);
-    }
-
-    @PutMapping("/items/{id}")
-    @Transactional
-    public ResponseEntity<ItemsDTO> atualizar(@PathVariable Long id,
-                                              @RequestBody AtualizacaoItemsDTO form){
-
-        Optional<Items> optional = itemsRepository.findById(id);
-        if(optional.isPresent()) {
-            Items items = form.atualizar(id, itemsRepository);
-            return ResponseEntity.ok(new ItemsDTO(items));
-        }
-        return ResponseEntity.notFound().build();
-    }
-
-    @Transactional
-    @DeleteMapping("/items/{id}")
-    public String deleteItem(@PathVariable Long id) {
-        Optional<Items> optional = itemsRepository.findById(id);
-        if(optional.isPresent()) {
-            itemsRepository.deleteById(id);
-            return "Objeto deletado";
+        if (user.isEmpty()) {
+            userRepository.save(request);
+            return ResponseEntity.ok().build();
         } else {
-            return "Objeto não existe";
+            return ResponseEntity.badRequest().body("null");
+        }
+    }
+
+    @PutMapping("/user/{cpf}")
+    @Transactional
+    public ResponseEntity<Object> atualiza(@RequestBody User request){
+
+        Optional<User> user = userRepository.findByCpf(request.getCpf());
+
+        if (user.isPresent()) {
+            userRepository.save(request);
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.badRequest().body("null");
+        }
+    }
+
+    @Transactional
+    @DeleteMapping("/user/{cpf}")
+    public ResponseEntity<Object> deleteItem(@PathVariable String cpf) {
+
+        Optional<User> optional = userRepository.findByCpf(cpf);
+
+        if(optional.isPresent()) {
+            userRepository.deleteByCpf(cpf);
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.badRequest().body("null");
         }
     }
 
